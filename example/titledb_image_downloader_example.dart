@@ -4,11 +4,15 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart';
+import 'package:titledb_image_downloader/src/image_downloader.dart';
 import 'package:titledb_image_downloader/titledb_image_downloader.dart';
 
 Future<void> main() async {
-  final directory = Directory('/Users/buba/Hiatus/switch/document/titledb/source');
-  final titleDb = TitleDb(directory);
+  final titleDbDirectory = Directory('/Users/buba/Hiatus/switch/document/titledb/source');
+  final downloadDirectory = Directory('/Users/buba/Downloads/ns');
+
+  final titleDb = TitleDb(titleDbDirectory);
   final regions = await titleDb.loadRegions();
   final Languages languages = await titleDb.loadLanguages();
 
@@ -20,8 +24,9 @@ Future<void> main() async {
         for (final key in json.keys) {
           final Map<String, dynamic> value = json[key];
           final title = Title.fromJson(value, language);
-          print(title.toJson());
-          exit(1);
+
+          final directory = Directory(join(downloadDirectory.path, '${title.nsuId}'));
+          await ImageDownloader(directory).download(title);
         }
       }
     }
