@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
+import 'package:tint/tint.dart';
 import 'package:titledb_image_downloader/src/image_downloader.dart';
 import 'package:titledb_image_downloader/titledb_image_downloader.dart';
 
@@ -14,18 +15,20 @@ Future<void> main() async {
 
   final titleDb = TitleDb(titleDbDirectory);
   final regions = await titleDb.loadRegions();
-  final Languages languages = await titleDb.loadLanguages();
+  final languages = await titleDb.loadLanguages();
 
   for (final regionCode in regions.keys) {
     for (final countryCode in regions[regionCode]!) {
       for (final language in languages[countryCode] ?? <LanguageCode>[]) {
+        stdout.write('Loading title ${countryCode.value.magenta()}.${language.value.blue()}.json... '.yellow());
         final json = await titleDb.loadTitle(countryCode, language);
+        stdout.writeln('OK'.green());
 
         for (final key in json.keys) {
           final Map<String, dynamic> value = json[key];
           final title = Title.fromJson(value, language);
 
-          final directory = Directory(join(downloadDirectory.path, '${title.nsuId}'));
+          final directory = Directory(join(downloadDirectory.path, '${title.id ?? title.nsuId}'));
           await ImageDownloader(directory).download(title);
         }
       }
